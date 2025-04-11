@@ -17,37 +17,57 @@ export default function AgoraCall() {
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
+  const [remoteUsers, setRemoteUsers] = useState({});
 
   const joinCall = async () => {
     try {
       await client.join(APP_ID, CHANNEL, TOKEN, null);
-
       const [mic, cam] = await AgoraRTC.createMicrophoneAndCameraTracks();
       micTrack.current = mic;
       videoTrack.current = cam;
 
-      videoTrack.current.play(localContainer.current);
-      await client.publish([micTrack.current, videoTrack.current]);
+      // Show host video
+      setTimeout(() => {
+        if (localContainer.current) {
+          videoTrack.current.play(localContainer.current);
+        }
+      }, 100);
 
+      await client.publish([micTrack.current, videoTrack.current]);
       setJoined(true);
 
+      // Handle remote user join
       client.on('user-published', async (user, mediaType) => {
         await client.subscribe(user, mediaType);
 
-        if (mediaType === 'video') {
-          const remoteContainer = document.createElement('div');
-          remoteContainer.id = `remote-user-${user.uid}`;
-          remoteContainer.style.width = '100%';
-          remoteContainer.style.height = '200px';
-          document.getElementById('remote-videos').append(remoteContainer);
-          user.videoTrack.play(remoteContainer);
+        if (mediaType === 'video' || mediaType === 'all') {
+          setRemoteUsers(prev => ({
+            ...prev,
+            [user.uid]: user
+          }));
+
+          // Safely play their video after DOM updates
+          setTimeout(() => {
+            const remoteContainer = document.getElementById(`remote-user-${user.uid}`);
+            if (remoteContainer && user.videoTrack) {
+              user.videoTrack.play(remoteContainer);
+            }
+          }, 200);
         }
       });
 
+      // Handle remote user leaving
       client.on('user-unpublished', (user) => {
+        setRemoteUsers(prev => {
+          const updated = { ...prev };
+          delete updated[user.uid];
+          return updated;
+        });
+
         const el = document.getElementById(`remote-user-${user.uid}`);
         if (el) el.remove();
       });
+
     } catch (err) {
       console.error('❌ Error joining call:', err);
     }
@@ -101,41 +121,56 @@ export default function AgoraCall() {
       )}
 
       {joined && (
-        <div className="flex gap-4 flex-wrap mb-4">
-          <button
-            onClick={toggleMic}
-            className={`px-4 py-2 rounded ${micOn ? 'bg-green-600' : 'bg-gray-400'} text-white`}
-          >
-            {micOn ? '🎙️ Mic On' : '🔇 Mic Off'}
-          </button>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Host */}
+          <div className="space-y-2 max-w-sm w-full">
+            <h4 className="text-lg font-semibold text-gray-700">🧑‍🏫 Host (You)</h4>
+            <div
+              ref={localContainer}
+              className="w-full h-48 sm:h-52 bg-black rounded-lg shadow overflow-hidden"
+            />
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={toggleMic}
+                className={`px-4 py-2 rounded ${micOn ? 'bg-green-600' : 'bg-gray-400'} text-white`}
+              >
+                {micOn ? '🎙️ Mic On' : '🔇 Mic Off'}
+              </button>
 
-          <button
-            onClick={toggleCam}
-            className={`px-4 py-2 rounded ${camOn ? 'bg-purple-600' : 'bg-gray-400'} text-white`}
-          >
-            {camOn ? '📷 Cam On' : '🚫 Cam Off'}
-          </button>
+              <button
+                onClick={toggleCam}
+                className={`px-4 py-2 rounded ${camOn ? 'bg-purple-600' : 'bg-gray-400'} text-white`}
+              >
+                {camOn ? '📷 Cam On' : '🚫 Cam Off'}
+              </button>
 
-          <button
-            onClick={toggleScreenShare}
-            className={`px-4 py-2 rounded ${screenSharing ? 'bg-red-600' : 'bg-yellow-600'} text-white`}
-          >
-            {screenSharing ? '🛑 Stop Share' : '🖥️ Share Screen'}
-          </button>
+              <button
+                onClick={toggleScreenShare}
+                className={`px-4 py-2 rounded ${screenSharing ? 'bg-red-600' : 'bg-yellow-600'} text-white`}
+              >
+                {screenSharing ? '🛑 Stop Share' : '🖥️ Share Screen'}
+              </button>
+            </div>
+          </div>
+
+          {/* Students */}
+          <div className="flex-1 space-y-2">
+            <h4 className="text-lg font-semibold text-gray-700">🧑‍🎓 Students</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {Object.entries(remoteUsers).map(([uid, user]) => (
+                <div
+                  key={uid}
+                  id={`remote-user-${uid}`}
+                  className="w-full h-48 bg-black rounded-lg shadow overflow-hidden"
+                />
+              ))}
+              {Object.keys(remoteUsers).length === 0 && (
+                <p className="text-sm text-gray-500 italic">No students joined yet.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <h4 className="font-semibold mb-1">🧑‍🏫 You</h4>
-          <div ref={localContainer} className="w-full h-60 bg-black rounded" />
-        </div>
-
-        <div>
-          <h4 className="font-semibold mb-1">🧑‍🎓 Students</h4>
-          <div id="remote-videos" className="grid gap-2" />
-        </div>
-      </div>
     </div>
   );
 }
