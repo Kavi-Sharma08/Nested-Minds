@@ -1,0 +1,36 @@
+@import "tailwindcss";
+html,body{
+  height: 100%;
+  width: 100%;
+}
+#root{
+  height: 100%;
+  width: 100%;
+}
+.heading {
+  font-family: "Joan", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+.logo-font {
+  font-family: "Tajawal", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+}
+.login-font {
+  
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+  
+}
+.main-heading{
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+.main-heading-2 {
+  font-family: "DM Serif Display", serif;
+  font-weight: 400;
+  font-style: normal;
+}
