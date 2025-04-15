@@ -1,9 +1,12 @@
 import React from 'react'
-import AgoraCall from './AgoraCall'
+import TeacherDashboard from './TeacherDashboard'
+import Screenpipe from '../Screepipe'
 const DashBoard = () => {
   return (
     <div>
-      <AgoraCall/>
+      <TeacherDashboard/>
+      <Screenpipe/>
+      
     </div>
   )
 }
