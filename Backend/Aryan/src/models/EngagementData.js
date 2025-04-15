@@ -7,5 +7,4 @@ const EngagementDataSchema = new mongoose.Schema({
   is_present_flag: { type: Boolean, default: false },
   mouse_move: { type: Boolean, default: false },
 });
-
 module.exports = mongoose.model("EngagementData", EngagementDataSchema);

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const ClassSchema = new mongoose.Schema({
   teach_id: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher", required: true },
   students_array: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }], // References to Student IDs
