@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-
   const firstNameRef = useRef<HTMLInputElement>(null);
   const lastNameRef = useRef<HTMLInputElement>(null);
-  const EmailRef = useRef<HTMLInputElement>(null);
-  const PasswordRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
+  const [role, setRole] = useState<"student" | "teacher">("student");
   const [isLogin, setIsLogin] = useState<boolean>(false);
   const [firstName, setFirstName] = useState<string>("Kavi");
   const [lastName, setLastName] = useState<string>("Sharma");
@@ -17,8 +17,20 @@ const Login: React.FC = () => {
 
   const handleForm = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log({ firstName, lastName, email, password });
-    navigate("/dashboard");
+    console.log({
+      role,
+      isLogin,
+      firstName,
+      lastName,
+      email,
+      password,
+    });
+    if(role==="teacher"){
+      navigate("/teacherDashboard")
+    }
+    else{
+      navigate("/studentDashboard")
+    }
   };
 
   const toggleLogin = () => {
@@ -37,9 +49,29 @@ const Login: React.FC = () => {
 
       {/* Right Section - Form */}
       <div className="w-full sm:w-1/2 max-w-md bg-white shadow-2xl rounded-2xl p-8">
-        <h2 className="text-3xl font-semibold text-center text-blue-600 mb-6">
-          {isLogin ? "Login" : "Sign Up"}
+        <h2 className="text-3xl font-semibold text-center text-blue-600 mb-4">
+          {isLogin ? "Login" : "Sign Up"} as {role === "student" ? "Student" : "Teacher"}
         </h2>
+
+        {/* Role Toggle */}
+        <div className="flex justify-center gap-4 mb-6">
+          <button
+            onClick={() => setRole("student")}
+            className={`px-4 py-1 rounded-full text-sm font-medium ${
+              role === "student" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            Student
+          </button>
+          <button
+            onClick={() => setRole("teacher")}
+            className={`px-4 py-1 rounded-full text-sm font-medium ${
+              role === "teacher" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            Teacher
+          </button>
+        </div>
 
         <form onSubmit={handleForm} className="space-y-5">
           {!isLogin && (
@@ -77,7 +109,7 @@ const Login: React.FC = () => {
               Email
             </label>
             <input
-              ref={EmailRef}
+              ref={emailRef}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -91,7 +123,7 @@ const Login: React.FC = () => {
               Password
             </label>
             <input
-              ref={PasswordRef}
+              ref={passwordRef}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
